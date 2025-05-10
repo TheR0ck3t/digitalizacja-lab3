@@ -4,7 +4,6 @@ const router = express.Router();
 
 // NBP API Interaction
 router.get('/', async(req, res) => {
-    const currency = req.query.currency; // Pobierz walutę z parametrów URL
     try {
         const [resultA, resultB] = await Promise.all([
             axios.get('http://api.nbp.pl/api/exchangerates/tables/A?format=json'),
