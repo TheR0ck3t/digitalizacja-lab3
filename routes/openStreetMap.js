@@ -1,9 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const { countries } = require('country-data')
+const {getCountry} = require('../modules/countriesGraphQL');
 
-router.get('/', async(req, res, next) => {});
 
 router.get('/search', async(req, res) => {
     const query = req.query.q; // Pobierz zapytanie z parametrów URL
@@ -28,17 +27,32 @@ router.get('/search', async(req, res) => {
             country: location.address && location.address.country ? location.address.country : null, // Nazwa kraju
             country_code: location.address && location.address.country_code ? location.address.country_code : null, // Kod kraju
         }));
+        // Pobierz walutę dla każdego kraju
         try {
-            const country = countries.all.find(c => c.alpha2 === (results[0].country_code).toUpperCase()); // Znajdź kraj na podstawie kodu
-            if (country) {
-                const currency = country.currencies[0]; // Pobierz walutę
-                results[0].currency = currency; // Dodaj walutę do wyników
-            } else {
-                results[0].currency = null; // Jeśli kraj nie został znaleziony, ustaw walutę na null
+            if (!results[0].country_code || results[0].country_code == null || results[0].country_code === '') {
+                results.forEach(result => {
+                    result.currency = null; // Ustaw walutę na null, jeśli kod kraju jest pusty
+                });
             }
+            else {
+                const countryData = await getCountry(results[0].country_code); // Pobierz dane kraju
+                if (countryData) {
+                    const currency = countryData.currency; // Pobierz walutę
+                    results.forEach(result => {
+                        result.currency = currency; // Dodaj walutę do wyników
+                    });
+                } else {
+                    results.forEach(result => {
+                        result.currency = null; // Ustaw walutę na null, jeśli kraj nie został znaleziony
+                    });
+                } 
+            }
+
         } catch (error) {
             console.error('Error fetching currency:', error); // Obsługa błędów
-            
+            results.forEach(result => {
+                result.currency = null; // Ustaw walutę na null w przypadku błędu
+            });
         }
 
         res.json(results); // Zwróć przetworzone wyniki
@@ -71,17 +85,24 @@ router.get('/reverse', async(req, res) => {
             country: response.data.address && response.data.address.country ? response.data.address.country : null, // Nazwa kraju
             country_code: response.data.address && response.data.address.country_code ? response.data.address.country_code : null, // Kod kraju
         };
+        // Pobierz walutę dla kraju
         try {
-            const country = countries.all.find(c => c.alpha2 === (result.country_code).toUpperCase()); // Znajdź kraj na podstawie kodu
-            if (country) {
-                const currency = country.currencies[0]; // Pobierz walutę
-                result.currency = currency; // Dodaj walutę do wyników
-            } else {
-                result.currency = null; // Jeśli kraj nie został znaleziony, ustaw walutę na null
+            if (!result.country_code || result.country_code == null || result.country_code === '') {
+                result.currency = null; // Ustaw walutę na null, jeśli kod kraju jest pusty
             }
+            else {
+                const countryData = await getCountry(result.country_code); // Pobierz dane kraju
+                if (countryData) {
+                    const currency = countryData.currency; // Pobierz walutę
+                    result.currency = currency; // Dodaj walutę do wyników
+                } else {
+                    result.currency = null; // Ustaw walutę na null, jeśli kraj nie został znaleziony
+                } 
+            }
+
         } catch (error) {
             console.error('Error fetching currency:', error); // Obsługa błędów
-            
+            result.currency = null; // Ustaw walutę na null w przypadku błędu
         }
 
         res.json(result); // Zwróć przetworzone wyniki
