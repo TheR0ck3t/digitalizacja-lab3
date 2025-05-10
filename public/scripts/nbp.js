@@ -1,6 +1,13 @@
 export default async function getExchangeRate(currency) {
+    let nbpDiv = document.getElementById('nbp');
     if (!currency) {
         console.error('Currency is not defined');
+        return;
+    }
+    if (currency === 'PLN') {
+        console.error('Currency is PLN, no conversion needed');
+        nbpDiv.innerHTML = ''; // Clear previous content
+
         return;
     }
     try {
@@ -13,8 +20,6 @@ export default async function getExchangeRate(currency) {
         const rate = data.find(item => item.code === currency);
         if (rate) {
             const exchangeRate = rate.mid;
-            console.log(`Exchange rate for ${currency}: ${exchangeRate}`);
-            let nbpDiv = document.getElementById('nbp');
             nbpDiv.innerHTML = ''; // Clear previous content
             let currencyParagraph = document.createElement('p');
             currencyParagraph.textContent = `Kurs wymiany ${currency} na złotówki: ${exchangeRate}`;
@@ -47,15 +52,15 @@ export default async function getExchangeRate(currency) {
                 }
             });
             nbpDiv.appendChild(submitButton);
-
-        //     <form>
-        //     <input type="number" name="amount" id="amount" min="1" placeholder="Podaj ilość do wymiany" />
-        //     <button type="submit">Przelicz</button>
-        // </form>
         } else {
             console.error(`Currency ${currency} not found`);
         }
     } catch (error) {
-        
+        console.error('Error fetching exchange rate:', error);
+        let nbpDiv = document.getElementById('nbp');
+        nbpDiv.innerHTML = ''; // Clear previous content
+        let errorParagraph = document.createElement('p');
+        errorParagraph.textContent = 'Nie można pobrać kursu wymiany. Sprawdź połączenie z internetem lub spróbuj ponownie później.';
+        nbpDiv.appendChild(errorParagraph);
     }
 }

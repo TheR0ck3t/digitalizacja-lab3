@@ -42,7 +42,6 @@ router.get('/search', async(req, res) => {
         }
 
         res.json(results); // Zwróć przetworzone wyniki
-        console.log('OpenStreetMap API response:', results);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data from OpenStreetMap' });
     }
@@ -86,7 +85,6 @@ router.get('/reverse', async(req, res) => {
         }
 
         res.json(result); // Zwróć przetworzone wyniki
-        console.log('OpenStreetMap API reverse response:', result);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data from OpenStreetMap' });
     }
